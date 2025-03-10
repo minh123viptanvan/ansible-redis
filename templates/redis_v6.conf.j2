@@ -1,0 +1,144 @@
+{{ ansible_managed | comment }}
+
+################################## NETWORK #####################################
+port {{ redis_port }}
+{% if redis_bind -%}
+bind {{ redis_bind }}
+{% endif -%}
+protected-mode {{ redis_protected_mode }}
+tcp-backlog {{ redis_tcp_backlog }}
+{% if redis_socket_path -%}
+unixsocket {{ redis_socket_path }}
+unixsocketperm {{ redis_socket_perm }}
+{% endif -%}
+tcp-keepalive {{ redis_tcp_keepalive }}
+################################## END NETWORK #####################################
+
+
+################################# GENERAL #####################################
+supervised auto
+daemonize {{ redis_daemonize }}
+pidfile {{ redis_pidfile }}
+dir {{ redis_dir }}
+timeout {{ redis_timeout }}
+loglevel {{ redis_loglevel }}
+logfile {{ redis_logfile }}
+syslog-enabled {{ redis_syslog_enabled }}
+syslog-ident {{ redis_syslog_ident }}
+syslog-facility {{ redis_syslog_facility }}
+databases {{ redis_databases }}
+################################# END GENERAL #####################################
+
+
+################################ SNAPSHOTTING  ################################
+{% for save in redis_save -%}
+save {{ save }}
+{% endfor -%}
+stop-writes-on-bgsave-error {{ redis_stop_writes_on_bgsave_error|string }}
+rdbcompression {{ redis_rdbcompression|string }}
+rdbchecksum {{ redis_rdbchecksum|string }}
+dbfilename {{ redis_db_filename|string }}
+################################ END SNAPSHOTTING  ################################
+
+################################# REPLICATION #################################
+{% if redis_replicaof -%}
+replicaof {{ redis_replicaof }}
+{% endif -%}
+replica-serve-stale-data yes
+repl-disable-tcp-nodelay no
+
+{% if redis_repl_backlog_size -%}
+repl-backlog-size {{ redis_repl_backlog_size }}
+{% endif -%}
+replica-priority {{ redis_replica_priority }}
+{% if redis_min_replicas_to_write -%}
+min-replicas-to-write {{ redis_min_replicas_to_write }}
+{% endif -%}
+{% if redis_min_replicas_max_lag -%}
+min-replicas-max-lag {{ redis_min_replicas_max_lag }}
+{% endif -%}
+
+{% if redis_default_passsword and not redis_acl -%}
+masterauth {{ redis_default_passsword }}
+{% elif redis_acl -%}
+masteruser {{ redis_replica_user }}
+masterauth {{ redis_replica_passsword }}
+{% endif -%}
+
+################################# END REPLICATION #################################
+
+
+################################## SECURITY ###################################
+{% if redis_default_passsword and not redis_acl -%}
+requirepass {{ redis_default_passsword }}
+{% for command in redis_rename_commands -%}
+rename-command {{ command }}
+{% endfor -%}
+{% endif -%}
+
+{% if redis_acl -%}
+aclfile {{ redis_aclfile }}
+{% endif -%}
+################################## END SECURITY ###################################
+
+
+################################### CLIENTS ####################################
+maxclients {{ redis_maxclients }}
+################################### END CLIENTS ####################################
+
+
+############################## MEMORY MANAGEMENT ################################
+# Limits
+{% if redis_maxmemory -%}
+maxmemory {{ redis_maxmemory }}
+{% endif -%}
+maxmemory-policy {{ redis_maxmemory_policy }}
+############################## END MEMORY MANAGEMENT ################################
+
+
+############################## APPEND ONLY MODE ###############################
+appendonly {{ redis_appendonly }}
+appendfilename "{{ redis_appendfilename }}"
+appendfsync {{ redis_appendfsync|string }}
+no-appendfsync-on-rewrite {{ redis_no_appendfsync_on_rewrite }}
+auto-aof-rewrite-percentage {{ redis_auto_aof_rewrite_percentage }}
+auto-aof-rewrite-min-size {{ redis_auto_aof_rewrite_min_size }}
+############################## END APPEND ONLY MODE ###############################
+
+
+{% if redis_cluster_enabled | default('no')  %}
+################################ REDIS CLUSTER  ###############################
+cluster-enabled {{ redis_cluster_enabled | default('no') }}
+cluster-config-file {{ redis_cluster_config_file | default('nodes-_6379.conf')}}
+################################ END REDIS CLUSTER  ###############################
+{% endif %}
+
+# Lua
+lua-time-limit {{ redis_lua_time_limit }}
+
+# Slow Log
+slowlog-log-slower-than {{ redis_slowlog_log_slower_than }}
+slowlog-max-len {{ redis_slowlog_max_len }}
+
+# Event Notification
+notify-keyspace-events {{ redis_notify_keyspace_events }}
+
+# Advanced
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-entries 512
+list-max-ziplist-value 64
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+activerehashing yes
+client-output-buffer-limit normal {{ redis_client_output_buffer_limit_normal }}
+client-output-buffer-limit replica  {{ redis_client_output_buffer_limit_replica }}
+client-output-buffer-limit pubsub {{ redis_client_output_buffer_limit_pubsub }}
+hz {{ redis_hz }}
+aof-rewrite-incremental-fsync yes
+
+{% if redis_config_additional|length -%}
+# Additional
+{{ redis_config_additional -}}
+{% endif -%}

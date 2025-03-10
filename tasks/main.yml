@@ -1,35 +1,40 @@
 ---
-- include_tasks: check_vars.yml
+- import_tasks: check_vars.yml
 
-- include_tasks: download.yml
+- ansible.builtin.import_tasks: uninstall.yml
+  when: uninstall_redis | default(false)
+  tags:
+    - uninstall
+
+- import_tasks: download.yml
   when: redis_install_from_source
   tags:
     - download
 
-- include_tasks: dependencies.yml
+- import_tasks: dependencies.yml
   when: redis_install_from_source
   tags:
     - install
 
-- include_tasks: install.yml
+- import_tasks: install.yml
   when: redis_install_from_source
   tags:
     - install
 
-- include_tasks: install_from_repo.yml
+- import_tasks: install_from_repo.yml
   when: not redis_install_from_source
   tags:
     - install
 
-- include_tasks: server.yml
+- import_tasks: server.yml
   when: not redis_sentinel
   tags:
     - config
 
-- include_tasks: sentinel.yml
+- import_tasks: sentinel.yml
   when: redis_sentinel
   tags:
     - config
 
-- include_tasks: local_facts.yml
+- import_tasks: local_facts.yml
   when: redis_local_facts|bool

@@ -1,0 +1,32 @@
+- name: Uninstall redis instance {{ redis_port }}
+  block:
+    - name: Step uninstall redis
+      ansible.builtin.debug:
+        msg: |
+          "
+          1. Stop redis_{{ redis_port }} service
+          2. Remove redis configuration file {{ redis_config_file_name }}, {{ redis_aclfile }}
+          3. Remove redis data directory {{ redis_dir }}
+          4. Remove {{ redis_service_name }} service 
+          "
+    - name: Stop redis service
+      ansible.builtin.systemd:
+        name: "redis_{{ redis_port }}"
+        enabled: false
+        state: stopped
+    - name: Remove redis configuration file
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ redis_config_file_name }}"
+        - "{{ redis_aclfile }}"
+    - name: Remove redis data directory 
+      ansible.builtin.file:
+        path: "{{ redis_dir }}"
+        state: absent
+    - name: Remove {{ redis_service_name }} service
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ redis_service_name }}.service"
+        state: absent
+  

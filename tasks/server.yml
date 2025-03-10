@@ -114,11 +114,20 @@
 
 - name: create redis config file
   template:
-    src: redis.conf.j2
-    dest: /etc/redis/{{ redis_config_file_name }}
+    src: "redis{% if redis_version is version('6','>=') %}_v6{% endif %}.conf.j2"
+    dest: "{{ redis_config_file }}/{{ redis_config_file_name }}"
     owner: "{{ redis_user }}"
     mode: 0640
   notify: "restart redis"
+
+- name: add user acl file
+  ansible.builtin.copy:
+    content: |
+      {{ acl_file }}
+    dest: "{{ redis_aclfile  }}"
+    owner: "{{ redis_user }}"
+    mode: "0700"
+    force: "{{ override_config | default(false) }}"
 
 - name: add redis init config file
   template:
