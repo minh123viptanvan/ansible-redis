@@ -11,7 +11,7 @@ EnvironmentFile=-/etc/default/{{ redis_service_name }}
 PIDFile={{ redis_pidfile }}
 TimeoutStartSec=infinity
 TimeoutStopSec=infinity
-Restart=on-failure
+Restart=always
 User={{ redis_user }}
 Group={{ redis_group }}
 
