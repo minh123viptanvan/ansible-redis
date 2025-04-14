@@ -40,7 +40,7 @@ redis_bind: false
 redis_port: 6379
 redis_password: true
 # Replica replication options
-redis_min_replicas_to_write: 0
+redis_min_replicas_to_write: "{{ (groups['redis_cluster'] | length | int % 2 | int) > 0 | bool }}"
 redis_min_replicas_max_lag: 10
 redis_tcp_backlog: 511
 redis_tcp_keepalive: 0
@@ -123,7 +123,7 @@ redis_config_additional: ""
 ## Redis sentinel configs
 # Set this to true on a host to configure it as a Sentinel
 redis_sentinel: false
-redis_sentinel_protected_mode: "yes"
+redis_sentinel_protected_mode: "no" # set no if not config redis_sentinel_password
 redis_sentinel_dir: /var/lib/redis/sentinel_{{ redis_sentinel_port }}
 redis_sentinel_bind: 0.0.0.0
 redis_sentinel_port: 26379
@@ -150,14 +150,14 @@ redis_cluster_enabled: no
 redis_cluster_config_file: nodes_{{ redis_port }}.conf
 
 # Redis ACL
-redis_default_passsword: somepassword
+redis_default_password: false
 redis_replica_user: replica-user
-redis_replica_passsword: somepassword
+redis_replica_password: false
 redis_sentinel_user: sentinel-user
-redis_sentinel_password: somepassword
-redis_acl: true
+redis_sentinel_password: false
+redis_acl: false
 acl_file: |
-  user default on >{{ redis_default_passsword }} ~* &* +@all
-  user {{ redis_replica_user }} on >{{ redis_replica_passsword | default('somepassword')}} +psync +replconf +ping
-  user {{ redis_sentinel_user }} on >{{ redis_sentinel_passsword | default('somepassword')}} allchannels +multi +slaveof +ping +exec +subscribe +config|rewrite +role +publish +info +client|setname +client|kill +script|kill
-  user redis_exporter on >{{ redis_sentinel_passsword | default('somepassword')}} +client +ping +info +config|get +cluster|info +slowlog +latency +memory +select +get +scan +xinfo +type +pfcount +strlen +llen +scard +zcard +hlen +xlen +eval allkeys 
+  user default on >{{ redis_default_password }} ~* &* +@all
+  user {{ redis_replica_user }} on >{{ redis_replica_password | default('somepassword')}} +psync +replconf +ping
+  user {{ redis_sentinel_user }} on >{{ redis_sentinel_password | default('somepassword')}} allchannels +multi +slaveof +ping +exec +subscribe +config|rewrite +role +publish +info +client|setname +client|kill +script|kill
+  user redis_exporter on >{{ redis_sentinel_password | default('somepassword')}} +client +ping +info +config|get +cluster|info +slowlog +latency +memory +select +get +scan +xinfo +type +pfcount +strlen +llen +scard +zcard +hlen +xlen +eval allkeys

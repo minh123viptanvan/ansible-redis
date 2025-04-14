@@ -57,7 +57,7 @@
 - name: set sentinel to start at boot
   service:
     name: sentinel_{{ redis_sentinel_port }}
-    enabled: yes
+    enabled: true
   when: redis_as_service
 
 # Check then create log dir to prevent aggressively overwriting permissions
@@ -108,13 +108,15 @@
     src: redis_sentinel.conf.j2
     dest: /etc/redis/sentinel_{{ redis_sentinel_port }}.conf
     owner: "{{ redis_user }}"
-    mode: 0640
+    mode: "0640"
+    force: "{{ override_cfg_redis_sentinel | default(false) }}"
   notify: "restart sentinel"
 
 - name: add sentinel init config file
   template:
     dest: /etc/sysconfig/sentinel_{{ redis_sentinel_port }}
     src: redis.init.conf.j2
+    force: "{{ override_cfg_redis_sentinel | default(false) }}"
   when: ansible_os_family == "RedHat"
   notify: "restart sentinel"
 
@@ -122,6 +124,7 @@
   template:
     dest: /etc/default/sentinel_{{ redis_sentinel_port }}
     src: redis.init.conf.j2
+    force: "{{ override_cfg_redis_sentinel | default(false) }}"
   when: ansible_os_family == "Debian"
   notify: "restart sentinel"
 

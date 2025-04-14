@@ -27,7 +27,8 @@
     - install
 
 - import_tasks: server.yml
-  when: not redis_sentinel
+  # when: not redis_sentinel
+  when: '"redis_cluster" in group_names'
   tags:
     - config
 

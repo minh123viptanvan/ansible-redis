@@ -86,7 +86,7 @@
     owner: "{{ redis_user }}"
     group: "{{ redis_group }}"
   when: redis_logfile != '""'
-  
+
 - name: update permissions of log file if needed
   file:
     state: file
@@ -118,6 +118,7 @@
     dest: "{{ redis_config_file }}/{{ redis_config_file_name }}"
     owner: "{{ redis_user }}"
     mode: 0640
+    force: "{{ override_cfg_redis | default(false) }}"
   notify: "restart redis"
 
 - name: add user acl file
@@ -127,7 +128,7 @@
     dest: "{{ redis_aclfile  }}"
     owner: "{{ redis_user }}"
     mode: "0700"
-    force: "{{ override_config | default(false) }}"
+    force: "{{ override_cfg_redis | default(false) }}"
 
 - name: add redis init config file
   template:

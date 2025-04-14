@@ -1,3 +1,5 @@
+# Example config: https://github.com/redis/redis/blob/unstable/redis.conf
+
 {{ ansible_managed | comment }}
 
 ################################## NETWORK #####################################
@@ -12,6 +14,9 @@ unixsocket {{ redis_socket_path }}
 unixsocketperm {{ redis_socket_perm }}
 {% endif -%}
 tcp-keepalive {{ redis_tcp_keepalive }}
+# enable-protected-configs no
+# enable-debug-command no
+# enable-module-command no
 ################################## END NETWORK #####################################
 
 
@@ -58,19 +63,19 @@ min-replicas-to-write {{ redis_min_replicas_to_write }}
 min-replicas-max-lag {{ redis_min_replicas_max_lag }}
 {% endif -%}
 
-{% if redis_default_passsword and not redis_acl -%}
-masterauth {{ redis_default_passsword }}
+{% if redis_default_password and not redis_acl -%}
+masterauth {{ redis_default_password }}
 {% elif redis_acl -%}
 masteruser {{ redis_replica_user }}
-masterauth {{ redis_replica_passsword }}
+masterauth {{ redis_replica_password }}
 {% endif -%}
 
 ################################# END REPLICATION #################################
 
 
 ################################## SECURITY ###################################
-{% if redis_default_passsword and not redis_acl -%}
-requirepass {{ redis_default_passsword }}
+{% if redis_default_password and not redis_acl -%}
+requirepass {{ redis_default_password }}
 {% for command in redis_rename_commands -%}
 rename-command {{ command }}
 {% endfor -%}
